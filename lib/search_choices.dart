@@ -111,6 +111,7 @@ Widget prepareWidget(dynamic object,
 class SearchChoices<T> extends StatefulWidget {
   final List<DropdownMenuItem<T>> items;
   final Function onChanged;
+  final Widget child;
   final T value;
   final TextStyle style;
   final dynamic searchHint;
@@ -321,9 +322,11 @@ class SearchChoices<T> extends StatefulWidget {
     bool rightToLeft = false,
     bool autofocus = true,
     Function selectedAggregateWidgetFn,
+    Widget child,
   }) {
     return (SearchChoices._(
       key: key,
+      child: child,
       items: items,
       style: style,
       searchHint: searchHint,
@@ -396,6 +399,7 @@ class SearchChoices<T> extends StatefulWidget {
     this.rightToLeft,
     this.autofocus,
     this.selectedAggregateWidgetFn,
+    this.child
   })  : assert(items != null),
         assert(iconSize != null),
         assert(isExpanded != null),
@@ -619,6 +623,29 @@ class _SearchChoicesState<T> extends State<SearchChoices<T>> {
     final EdgeInsetsGeometry padding = ButtonTheme.of(context).alignedDropdown
         ? _kAlignedButtonPadding
         : _kUnalignedButtonPadding;
+    if (widget.child != null) {
+      return GestureDetector(
+        child: widget.child,
+        onTap: () async {
+          if (widget.dialogBox) {
+            await showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (context) {
+                  return (menuWidget);
+                });
+            if (widget.onChanged != null && selectedItems != null) {
+              widget.onChanged(selectedResult);
+            }
+          } else {
+            displayMenu.value = true;
+          }
+          if (mounted) {
+            setState(() {});
+          }
+        },
+      );
+    }
     Widget clickable = !_enabled &&
             prepareWidget(widget.disabledHint, parameter: updateParent) != null
         ? prepareWidget(widget.disabledHint, parameter: updateParent)
